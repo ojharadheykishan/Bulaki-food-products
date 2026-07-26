@@ -4,6 +4,7 @@ import type { NextAuthOptions } from 'next-auth';
 const authOptions: NextAuthOptions = {
   session: {
     strategy: 'jwt',
+    maxAge: 30 * 24 * 60 * 60,
   },
   providers: [
     {
@@ -32,7 +33,8 @@ const authOptions: NextAuthOptions = {
             return null;
           }
 
-          const isPasswordValid = credentials.password === user.password || (await import('bcryptjs')).compare(credentials.password, user.password);
+          const bcrypt = await import('bcryptjs');
+          const isPasswordValid = credentials.password === user.password || bcrypt.compare(credentials.password, user.password);
 
           if (!isPasswordValid) {
             return null;
