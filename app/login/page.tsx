@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { signIn, getSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import SiteHeader from '@/components/layout/SiteHeader';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Button';
@@ -74,6 +75,11 @@ export default function LoginPage() {
               <Button type="submit" size="lg" className="w-full" disabled={isLoading}>
                 {isLoading ? 'Signing in...' : 'Sign In'}
               </Button>
+              <div className="text-center">
+                <Link href="/admin/login" className="text-sm text-brand-crimson hover:text-brand-maroon font-medium">
+                  Admin Login
+                </Link>
+              </div>
             </form>
           </div>
         </div>
