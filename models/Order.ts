@@ -29,6 +29,8 @@ export interface IOrder extends Document {
   orderId: string;
   customer: ICustomerAddress;
   orderItems: IOrderItem[];
+  subtotal: number;
+  deliveryFee: number;
   totalAmount: number;
   paymentMethod: 'COD' | 'ONLINE';
   paymentStatus: 'PENDING' | 'PAID' | 'FAILED';
@@ -73,6 +75,8 @@ const OrderSchema = new Schema<IOrder>(
     orderId: { type: String, required: true, unique: true },
     customer: { type: CustomerAddressSchema, required: true },
     orderItems: [OrderItemSchema],
+    subtotal: { type: Number, required: true, min: 0 },
+    deliveryFee: { type: Number, required: true, min: 0, default: 0 },
     totalAmount: { type: Number, required: true, min: 0 },
     paymentMethod: { type: String, enum: ['COD', 'ONLINE'], required: true },
     paymentStatus: { type: String, enum: ['PENDING', 'PAID', 'FAILED'], default: 'PENDING' },

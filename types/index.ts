@@ -59,6 +59,8 @@ export interface Order {
   orderId: string;
   customer: CustomerAddress;
   orderItems: OrderItem[];
+  subtotal: number;
+  deliveryFee: number;
   totalAmount: number;
   paymentMethod: 'COD' | 'ONLINE';
   paymentStatus: 'PENDING' | 'PAID' | 'FAILED';

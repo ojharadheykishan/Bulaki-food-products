@@ -32,26 +32,26 @@ export default function AdminDashboard() {
   }, []);
 
   const statCards = [
-    { title: 'Total Sales', value: `₹${stats.totalSales.toFixed(2)}`, icon: DollarSign, color: 'bg-green-100 text-green-600' },
-    { title: 'Total Orders', value: stats.totalOrders, icon: ShoppingCart, color: 'bg-blue-100 text-blue-600' },
-    { title: 'Active Shipments', value: stats.activeShipments, icon: Package, color: 'bg-purple-100 text-purple-600' },
-    { title: 'Low Stock', value: stats.lowStock, icon: AlertTriangle, color: 'bg-red-100 text-red-600' },
+    { title: 'Total Sales', value: `₹${stats.totalSales.toFixed(2)}`, icon: DollarSign, color: 'bg-green-100 text-green-700' },
+    { title: 'Total Orders', value: stats.totalOrders, icon: ShoppingCart, color: 'bg-blue-100 text-blue-700' },
+    { title: 'Active Shipments', value: stats.activeShipments, icon: Package, color: 'bg-purple-100 text-purple-700' },
+    { title: 'Low Stock', value: stats.lowStock, icon: AlertTriangle, color: 'bg-red-100 text-red-700' },
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-brand-ivory">
       <SiteHeader />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">Dashboard Overview</h1>
+        <h1 className="text-3xl font-bold text-brand-maroon mb-8">Dashboard Overview</h1>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {statCards.map((stat, index) => (
-            <div key={stat.title} className="card p-6">
+          {statCards.map((stat) => (
+            <div key={stat.title} className="card p-6 border-2 border-[#e6dfd3]">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">{stat.title}</p>
-                  <p className="mt-2 text-2xl font-bold text-gray-900">{stat.value}</p>
+                  <p className="text-sm font-medium text-brand-maroon/70">{stat.title}</p>
+                  <p className="mt-2 text-2xl font-bold text-brand-maroon">{stat.value}</p>
                 </div>
                 <div className={`p-3 rounded-full ${stat.color}`}>
                   <stat.icon className="w-6 h-6" />
@@ -64,23 +64,23 @@ export default function AdminDashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <div className="card p-6">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-semibold text-gray-900">Recent Orders</h2>
+              <h2 className="text-lg font-semibold text-brand-maroon">Recent Orders</h2>
               <Button onClick={() => router.push('/admin/orders')} variant="outline" size="sm">
                 View All
               </Button>
             </div>
             <div className="space-y-4">
               {recentOrders.length === 0 ? (
-                <p className="text-gray-500 text-center py-8">No orders yet.</p>
+                <p className="text-brand-maroon/70 text-center py-8">No orders yet.</p>
               ) : (
                 recentOrders.map((order) => (
-                  <div key={order._id} className="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
+                  <div key={order._id} className="flex items-center justify-between py-3 border-b border-[#e6dfd3] last:border-0">
                     <div>
-                      <p className="font-medium text-gray-900">#{order.orderId}</p>
-                      <p className="text-sm text-gray-500">{order.customer.name}</p>
+                      <p className="font-medium text-brand-maroon">#{order.orderId}</p>
+                      <p className="text-sm text-brand-maroon/70">{order.customer.name}</p>
                     </div>
                     <div className="text-right">
-                      <p className="font-medium text-gray-900">₹{order.totalAmount.toFixed(2)}</p>
+                      <p className="font-medium text-brand-maroon">₹{order.totalAmount.toFixed(2)}</p>
                       <span className={`text-xs px-2 py-1 rounded-full ${
                         order.orderStatus === 'DELIVERED' ? 'bg-green-100 text-green-700' :
                         order.orderStatus === 'OUT_FOR_DELIVERY' ? 'bg-blue-100 text-blue-700' :
@@ -97,7 +97,7 @@ export default function AdminDashboard() {
 
           <div className="card p-6">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-semibold text-gray-900">Quick Actions</h2>
+              <h2 className="text-lg font-semibold text-brand-maroon">Quick Actions</h2>
             </div>
             <div className="space-y-3">
               <Button

@@ -2,20 +2,23 @@
 
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
-import { Product } from '@/types';
 import ImageGallery from '@/components/shared/ImageGallery';
 import { useCartStore } from '@/store/cartStore';
-import { Star, Minus, Plus, ShoppingCart, Check, Info } from 'lucide-react';
+import { Star, Minus, Plus, ShoppingCart, Check, Info, Truck } from 'lucide-react';
 import SiteHeader from '@/components/layout/SiteHeader';
 import { Button } from '@/components/ui/Button';
 import toast from 'react-hot-toast';
+import { Product, IVariant } from '@/types';
 
 export default function ProductDetailsPage() {
   const params = useParams();
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
-  const [activeTab, setActiveTab] = useState<'description' | 'ingredients' | 'reviews'>('description');
+  const [activeTab, setActiveTab] = useState<'description' | 'nutrition' | 'reviews'>('description');
+  const [selectedWeight, setSelectedWeight] = useState('');
+  const [pincode, setPincode] = useState('');
+  const [deliveryMsg, setDeliveryMsg] = useState('');
 
   const addItem = useCartStore((state) => state.addItem);
 
@@ -26,6 +29,7 @@ export default function ProductDetailsPage() {
         if (res.ok) {
           const data = await res.json();
           setProduct(data);
+          setSelectedWeight(data.variants?.[0]?.weight || '');
         }
       } catch (error) {
         console.error('Error fetching product:', error);
@@ -36,16 +40,29 @@ export default function ProductDetailsPage() {
     fetchProduct();
   }, [params.id]);
 
+  const selectedVariant = product?.variants.find((v: IVariant) => v.weight === selectedWeight) || product?.variants[0];
+  const discountPercentage = selectedVariant?.mrp
+    ? Math.round(((selectedVariant.mrp - selectedVariant.price) / selectedVariant.mrp) * 100)
+    : 0;
+
   const handleAddToCart = () => {
-    if (product && product.stock > 0) {
-      addItem(product, quantity);
+    if (product && selectedVariant && selectedVariant.stock > 0) {
+      addItem(product, selectedVariant, quantity);
       toast.success('Added to cart!');
+    }
+  };
+
+  const checkDelivery = () => {
+    if (pincode.length === 6) {
+      setDeliveryMsg('Estimated delivery: 2-4 business days');
+    } else {
+      setDeliveryMsg('Please enter a valid 6-digit pincode');
     }
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-brand-ivory">
         <SiteHeader />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="animate-pulse">
@@ -64,21 +81,17 @@ export default function ProductDetailsPage() {
 
   if (!product) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-brand-ivory">
         <SiteHeader />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 text-center">
-          <h1 className="text-2xl font-bold text-gray-900">Product not found</h1>
+          <h1 className="text-2xl font-bold text-brand-maroon">Product not found</h1>
         </div>
       </div>
     );
   }
 
-  const discountPercentage = product.discountPrice
-    ? Math.round(((product.price - product.discountPrice) / product.price) * 100)
-    : 0;
-
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-brand-ivory">
       <SiteHeader />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -88,84 +101,82 @@ export default function ProductDetailsPage() {
           </div>
 
           <div>
-            <span className="text-sm font-medium text-primary-600 bg-primary-50 px-3 py-1 rounded-full">
-              {product.category}
+            <span className="text-xs font-bold text-brand-crimson uppercase tracking-wider">Authentic Bikaner Taste</span>
+            <span className="ml-3 text-xs font-medium text-brand-forest bg-brand-forest/10 px-2 py-1 rounded-full border border-brand-forest/20">
+              {product.isVeg ? '🟢 Veg' : '🔴 Non-Veg'}
             </span>
 
-            <h1 className="mt-4 text-3xl lg:text-4xl font-bold text-gray-900">
+            <h1 className="mt-4 text-3xl lg:text-4xl font-bold text-brand-maroon">
               {product.name}
             </h1>
 
             <div className="mt-4 flex items-center gap-2">
-              <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" />
-              <span className="font-medium text-gray-900">{product.ratings.toFixed(1)}</span>
-              <span className="text-gray-400">({product.reviewCount} reviews)</span>
+              <Star className="w-5 h-5 fill-brand-gold text-brand-gold" />
+              <span className="font-medium text-brand-maroon">{product.ratings.toFixed(1)}</span>
+              <span className="text-brand-maroon/60">({product.reviewCount} reviews)</span>
             </div>
 
             <div className="mt-6 flex items-baseline gap-3">
-              <span className="text-4xl font-bold text-gray-900">
-                ₹{product.discountPrice || product.price}
+              <span className="text-4xl font-bold text-brand-maroon">
+                ₹{selectedVariant?.price}
               </span>
-              {product.discountPrice && (
+              {selectedVariant?.mrp && selectedVariant.mrp > selectedVariant.price && (
                 <>
-                  <span className="text-xl text-gray-400 line-through">₹{product.price}</span>
-                  <span className="text-green-600 font-medium">-{discountPercentage}%</span>
+                  <span className="text-xl text-brand-maroon/40 line-through">₹{selectedVariant.mrp}</span>
+                  <span className="text-green-700 font-medium">-{discountPercentage}%</span>
                 </>
               )}
             </div>
 
-            <div className="mt-6 flex items-center gap-4">
-              <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium ${
-                product.stock > 0 ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'
-              }`}>
-                {product.stock > 0 ? (
-                  product.stock <= 5 ? `Only ${product.stock} left` : 'In Stock'
-                ) : 'Out of Stock'}
-              </span>
-              {product.isVeg !== undefined && (
-                <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium ${
-                  product.isVeg ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
-                }`}>
-                  {product.isVeg ? '🟢 Veg' : '🔴 Non-Veg'}
-                </span>
-              )}
+            <div className="mt-6">
+              <label className="block text-sm font-medium text-brand-maroon/80 mb-2">Select Weight</label>
+              <div className="flex flex-wrap gap-3">
+                {product.variants.map((variant: IVariant) => (
+                  <button
+                    key={variant.weight}
+                    onClick={() => { setSelectedWeight(variant.weight); setQuantity(1); }}
+                    className={`px-4 py-2 rounded-lg border-2 text-sm font-medium transition-colors ${
+                      selectedWeight === variant.weight
+                        ? 'border-brand-crimson bg-brand-crimson/5 text-brand-maroon'
+                        : 'border-[#e6dfd3] text-brand-maroon/70 hover:border-brand-gold/60'
+                    }`}
+                  >
+                    {variant.weight} - ₹{variant.price}
+                  </button>
+                ))}
+              </div>
             </div>
 
-            <div className="mt-8 space-y-4">
-              {product.weight && (
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500">Weight</h3>
-                  <p className="mt-1 text-gray-900">{product.weight}</p>
-                </div>
-              )}
-              {product.brand && (
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500">Brand</h3>
-                  <p className="mt-1 text-gray-900">{product.brand}</p>
-                </div>
-              )}
+            <div className="mt-6 flex items-center gap-4">
+              <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium ${
+                selectedVariant && selectedVariant.stock > 0 ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'
+              }`}>
+                {selectedVariant && selectedVariant.stock > 0 ? (
+                  selectedVariant.stock <= 5 ? `Only ${selectedVariant.stock} left` : 'In Stock'
+                ) : 'Out of Stock'}
+              </span>
             </div>
 
             <div className="mt-8 flex items-center gap-4">
-              <div className="flex items-center border border-gray-300 rounded-lg">
+              <div className="flex items-center border border-[#e6dfd3] rounded-lg bg-white">
                 <button
                   onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  className="p-3 hover:bg-gray-100 transition-colors"
+                  className="p-3 hover:bg-brand-ivory transition-colors"
                 >
-                  <Minus className="w-4 h-4" />
+                  <Minus className="w-4 h-4 text-brand-maroon" />
                 </button>
-                <span className="px-4 font-medium">{quantity}</span>
+                <span className="px-4 font-medium text-brand-maroon">{quantity}</span>
                 <button
-                  onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}
-                  className="p-3 hover:bg-gray-100 transition-colors"
+                  onClick={() => setQuantity(Math.min(selectedVariant?.stock || 1, quantity + 1))}
+                  className="p-3 hover:bg-brand-ivory transition-colors"
                 >
-                  <Plus className="w-4 h-4" />
+                  <Plus className="w-4 h-4 text-brand-maroon" />
                 </button>
               </div>
 
               <Button
                 onClick={handleAddToCart}
-                disabled={product.stock === 0}
+                disabled={!selectedVariant || selectedVariant.stock === 0}
                 size="lg"
                 className="flex-1"
               >
@@ -174,24 +185,42 @@ export default function ProductDetailsPage() {
               </Button>
             </div>
 
-            {product.stock > 0 && (
+            {selectedVariant && selectedVariant.stock > 0 && (
               <button
                 onClick={handleAddToCart}
-                className="mt-4 w-full btn-outline"
+                className="mt-4 w-full btn-accent"
               >
                 <Check className="w-4 h-4" />
                 Buy Now
               </button>
             )}
+
+            <div className="mt-8">
+              <label className="block text-sm font-medium text-brand-maroon/80 mb-2">Check Delivery</label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={pincode}
+                  onChange={(e) => setPincode(e.target.value)}
+                  placeholder="Enter pincode"
+                  className="flex-1 px-4 py-2.5 border border-[#e6dfd3] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-gold/60"
+                  maxLength={6}
+                />
+                <Button type="button" onClick={checkDelivery} variant="outline">
+                  <Truck className="w-4 h-4" />
+                </Button>
+              </div>
+              {deliveryMsg && <p className="mt-2 text-sm text-brand-maroon/70">{deliveryMsg}</p>}
+            </div>
           </div>
         </div>
 
         <div className="mt-16">
-          <div className="border-b border-gray-200">
+          <div className="border-b border-[#e6dfd3]">
             <nav className="flex gap-8">
               {[
-                { key: 'description', label: 'Description' },
-                { key: 'ingredients', label: product.isFood ? 'Ingredients' : 'Details' },
+                { key: 'description', label: 'Ingredients & Taste Profile' },
+                { key: 'nutrition', label: 'Nutritional Values' },
                 { key: 'reviews', label: 'Reviews' },
               ].map((tab) => (
                 <button
@@ -199,8 +228,8 @@ export default function ProductDetailsPage() {
                   onClick={() => setActiveTab(tab.key as any)}
                   className={`py-4 text-sm font-medium border-b-2 transition-colors ${
                     activeTab === tab.key
-                      ? 'border-primary-600 text-primary-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700'
+                      ? 'border-brand-crimson text-brand-crimson'
+                      : 'border-transparent text-brand-maroon/60 hover:text-brand-maroon'
                   }`}
                 >
                   {tab.label}
@@ -212,25 +241,27 @@ export default function ProductDetailsPage() {
           <div className="mt-8">
             {activeTab === 'description' && (
               <div className="prose max-w-none">
-                <p className="text-gray-700 leading-relaxed">{product.description}</p>
-                {product.shelfLife && (
-                  <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-                    <div className="flex items-start gap-2">
-                      <Info className="w-5 h-5 text-primary-600 mt-0.5" />
-                      <div>
-                        <p className="font-medium text-gray-900">Shelf Life</p>
-                        <p className="text-gray-600">{product.shelfLife}</p>
-                      </div>
-                    </div>
+                <p className="text-brand-maroon/80 leading-relaxed">{product.description}</p>
+                {product.ingredients && product.ingredients.length > 0 && (
+                  <div className="mt-6">
+                    <h3 className="text-lg font-semibold text-brand-maroon mb-3">Ingredients</h3>
+                    <ul className="space-y-2">
+                      {product.ingredients.map((ingredient: string, index: number) => (
+                        <li key={index} className="flex items-center gap-2 text-brand-maroon/80">
+                          <Check className="w-4 h-4 text-brand-forest" />
+                          {ingredient}
+                        </li>
+                      ))}
+                    </ul>
                   </div>
                 )}
-                {product.storageInstructions && (
-                  <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+                {product.shelfLife && (
+                  <div className="mt-6 p-4 bg-brand-ivory rounded-lg border border-[#e6dfd3]">
                     <div className="flex items-start gap-2">
-                      <Info className="w-5 h-5 text-primary-600 mt-0.5" />
+                      <Info className="w-5 h-5 text-brand-crimson mt-0.5" />
                       <div>
-                        <p className="font-medium text-gray-900">Storage Instructions</p>
-                        <p className="text-gray-600">{product.storageInstructions}</p>
+                        <p className="font-medium text-brand-maroon">Shelf Life</p>
+                        <p className="text-brand-maroon/70">{product.shelfLife}</p>
                       </div>
                     </div>
                   </div>
@@ -238,26 +269,42 @@ export default function ProductDetailsPage() {
               </div>
             )}
 
-            {activeTab === 'ingredients' && (
+            {activeTab === 'nutrition' && (
               <div>
-                {product.ingredients && product.ingredients.length > 0 ? (
-                  <ul className="space-y-2">
-                    {product.ingredients.map((ingredient, index) => (
-                      <li key={index} className="flex items-center gap-2 text-gray-700">
-                        <Check className="w-4 h-4 text-green-600" />
-                        {ingredient}
-                      </li>
-                    ))}
-                  </ul>
+                {product.nutritionalInfo ? (
+                  <div className="overflow-x-auto">
+                    <table className="w-full max-w-2xl">
+                      <thead>
+                        <tr className="bg-brand-ivory">
+                          <th className="px-4 py-3 text-left text-sm font-semibold text-brand-maroon">Nutrient</th>
+                          <th className="px-4 py-3 text-left text-sm font-semibold text-brand-maroon">Per 100g</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-[#e6dfd3]">
+                        {product.nutritionalInfo.energy && (
+                          <tr><td className="px-4 py-3 text-sm text-brand-maroon/80">Energy</td><td className="px-4 py-3 text-sm text-brand-maroon/80">{product.nutritionalInfo.energy}</td></tr>
+                        )}
+                        {product.nutritionalInfo.protein && (
+                          <tr><td className="px-4 py-3 text-sm text-brand-maroon/80">Protein</td><td className="px-4 py-3 text-sm text-brand-maroon/80">{product.nutritionalInfo.protein}</td></tr>
+                        )}
+                        {product.nutritionalInfo.fat && (
+                          <tr><td className="px-4 py-3 text-sm text-brand-maroon/80">Fat</td><td className="px-4 py-3 text-sm text-brand-maroon/80">{product.nutritionalInfo.fat}</td></tr>
+                        )}
+                        {product.nutritionalInfo.carbs && (
+                          <tr><td className="px-4 py-3 text-sm text-brand-maroon/80">Carbohydrates</td><td className="px-4 py-3 text-sm text-brand-maroon/80">{product.nutritionalInfo.carbs}</td></tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
                 ) : (
-                  <p className="text-gray-500">No ingredients information available.</p>
+                  <p className="text-brand-maroon/70">No nutritional information available.</p>
                 )}
               </div>
             )}
 
             {activeTab === 'reviews' && (
               <div className="text-center py-12">
-                <p className="text-gray-500">No reviews yet. Be the first to review this product!</p>
+                <p className="text-brand-maroon/70">No reviews yet. Be the first to review this product!</p>
               </div>
             )}
           </div>

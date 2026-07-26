@@ -9,6 +9,10 @@ export async function POST(request: Request) {
 
     const { items, customer, totalAmount, paymentMethod, paymentStatus } = body;
 
+    const subtotal = items.reduce((sum: number, item: { price: number; quantity: number }) => sum + item.price * item.quantity, 0);
+    const deliveryFee = subtotal > 499 ? 0 : 40;
+    const calculatedTotal = subtotal + deliveryFee;
+
     let razorpayOrderId: string | undefined;
     let finalPaymentStatus = paymentStatus || 'PENDING';
 
@@ -21,7 +25,7 @@ export async function POST(request: Request) {
         });
 
         const options = {
-          amount: Math.round(totalAmount * 100),
+          amount: Math.round(calculatedTotal * 100),
           currency: 'INR',
           receipt: `receipt_order_${Date.now()}`,
           payment_capture: 1,
@@ -37,7 +41,9 @@ export async function POST(request: Request) {
     const order = new Order({
       customer,
       orderItems: items,
-      totalAmount,
+      subtotal,
+      deliveryFee,
+      totalAmount: calculatedTotal,
       paymentMethod,
       paymentStatus: finalPaymentStatus,
       razorpayOrderId,

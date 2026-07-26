@@ -10,6 +10,8 @@ interface CartState {
   clearCart: () => void;
   getTotalItems: () => number;
   getTotalPrice: () => number;
+  getSubtotal: () => number;
+  getDeliveryFee: () => number;
 }
 
 export const useCartStore = create<CartState>()(
@@ -72,6 +74,15 @@ export const useCartStore = create<CartState>()(
 
       getTotalPrice: () => {
         return get().items.reduce((total, item) => total + item.variant.price * item.quantity, 0);
+      },
+
+      getSubtotal: () => {
+        return get().items.reduce((total, item) => total + item.variant.price * item.quantity, 0);
+      },
+
+      getDeliveryFee: () => {
+        const subtotal = get().getSubtotal();
+        return subtotal > 499 ? 0 : 40;
       },
     }),
     {

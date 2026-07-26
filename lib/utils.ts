@@ -26,3 +26,23 @@ export function slugify(text: string): string {
     .replace(/[^\w ]+/g, '')
     .replace(/ +/g, '-');
 }
+
+export function buildWhatsAppOrderMessage(cartItems: { name: string; selectedWeight?: string; quantity: number; price: number }[], total: number, address: string) {
+  const lines = cartItems.map((item) => `- ${item.name}${item.selectedWeight ? ` (${item.selectedWeight})` : ''} x${item.quantity} = ₹${item.price * item.quantity}`);
+  const message = [
+    'Hi Bulaki Team, I would like to place a WhatsApp order:',
+    '',
+    ...lines,
+    '',
+    `Total: ₹${total}`,
+    '',
+    `Delivery Address: ${address}`,
+    '',
+    'Please confirm availability and payment details.',
+  ].join('\n');
+  return encodeURIComponent(message);
+}
+
+export function getWhatsAppLink(phone: string, message: string) {
+  return `https://wa.me/${phone}?text=${message}`;
+}

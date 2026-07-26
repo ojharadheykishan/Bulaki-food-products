@@ -5,27 +5,28 @@ import Link from 'next/link';
 import SiteHeader from '@/components/layout/SiteHeader';
 import { Button } from '@/components/ui/Button';
 import { useCartStore } from '@/store/cartStore';
-import { Trash2, Plus, Minus, ShoppingBag } from 'lucide-react';
+import { Trash2, Plus, Minus, ShoppingBag, Truck } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function CartPage() {
   const router = useRouter();
-  const { items, removeItem, updateQuantity, getTotalPrice, clearCart } = useCartStore();
-  const total = getTotalPrice();
-
-  const shipping = total > 500 ? 0 : 40;
-  const tax = total * 0.05;
-  const grandTotal = total + shipping + tax;
+  const { items, removeItem, updateQuantity, getSubtotal, getDeliveryFee, clearCart } = useCartStore();
+  const subtotal = getSubtotal();
+  const deliveryFee = getDeliveryFee();
+  const tax = subtotal * 0.05;
+  const grandTotal = subtotal + deliveryFee + tax;
+  const freeShippingThreshold = 499;
+  const remainingForFreeShipping = Math.max(0, freeShippingThreshold - subtotal);
 
   if (items.length === 0) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-brand-ivory">
         <SiteHeader />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
           <ShoppingBag className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Your cart is empty</h1>
-          <p className="text-gray-600 mb-8">Looks like you haven't added anything to your cart yet.</p>
-          <Link href="/products" className="btn-primary">
+          <h1 className="text-2xl font-bold text-brand-maroon mb-2">Your cart is empty</h1>
+          <p className="text-brand-maroon/70 mb-8">Looks like you haven't added anything to your cart yet.</p>
+          <Link href="/products" className="btn-accent">
             Browse Products
           </Link>
         </div>
@@ -34,16 +35,33 @@ export default function CartPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-brand-ivory">
       <SiteHeader />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">Shopping Cart</h1>
+        <h1 className="text-3xl font-bold text-brand-maroon mb-6">Shopping Cart</h1>
+
+        {remainingForFreeShipping > 0 && (
+          <div className="card p-4 mb-6 border-brand-gold/40 bg-brand-gold/5">
+            <div className="flex items-center gap-3">
+              <Truck className="w-5 h-5 text-brand-crimson" />
+              <p className="text-sm text-brand-maroon">
+                Add <span className="font-bold">₹{remainingForFreeShipping.toFixed(2)}</span> more for <span className="font-bold text-green-700">FREE shipping!</span>
+              </p>
+            </div>
+            <div className="mt-2 h-2 bg-gray-200 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-brand-crimson rounded-full transition-all duration-300"
+                style={{ width: `${Math.min(100, (subtotal / freeShippingThreshold) * 100)}%` }}
+              />
+            </div>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-4">
             {items.map((item) => (
-              <div key={item.product._id} className="card p-4">
+              <div key={`${item.product._id}-${item.variant.weight}`} className="card p-4">
                 <div className="flex gap-6">
                   <div className="w-24 h-24 rounded-lg overflow-hidden shrink-0 bg-gray-100">
                     <img
@@ -56,10 +74,10 @@ export default function CartPage() {
                     <div className="flex justify-between">
                       <div>
                         <h3 className="font-semibold text-gray-900">{item.product.name}</h3>
-                        <p className="text-sm text-gray-500">{item.product.category}</p>
+                        <p className="text-sm text-gray-500">{item.variant.weight}</p>
                       </div>
                       <button
-                        onClick={() => removeItem(item.product._id)}
+                        onClick={() => removeItem(item.product._id, item.variant.weight)}
                         className="text-gray-400 hover:text-red-500 transition-colors"
                       >
                         <Trash2 className="w-5 h-5" />
@@ -69,22 +87,22 @@ export default function CartPage() {
                     <div className="mt-4 flex items-center justify-between">
                       <div className="flex items-center border border-gray-300 rounded-lg">
                         <button
-                          onClick={() => updateQuantity(item.product._id, item.quantity - 1)}
+                          onClick={() => updateQuantity(item.product._id, item.variant.weight, item.quantity - 1)}
                           className="p-2 hover:bg-gray-100 transition-colors"
                         >
                           <Minus className="w-4 h-4" />
                         </button>
                         <span className="px-4 font-medium">{item.quantity}</span>
                         <button
-                          onClick={() => updateQuantity(item.product._id, item.quantity + 1)}
-                          disabled={item.quantity >= item.product.stock}
+                          onClick={() => updateQuantity(item.product._id, item.variant.weight, item.quantity + 1)}
+                          disabled={item.quantity >= item.variant.stock}
                           className="p-2 hover:bg-gray-100 transition-colors disabled:opacity-50"
                         >
                           <Plus className="w-4 h-4" />
                         </button>
                       </div>
                       <p className="font-bold text-gray-900">
-                        ₹{(item.product.price * item.quantity).toFixed(2)}
+                        ₹{(item.variant.price * item.quantity).toFixed(2)}
                       </p>
                     </div>
                   </div>
@@ -99,12 +117,12 @@ export default function CartPage() {
               <div className="space-y-3 text-sm">
                 <div className="flex justify-between">
                   <span className="text-gray-600">Subtotal</span>
-                  <span className="font-medium text-gray-900">₹{total.toFixed(2)}</span>
+                  <span className="font-medium text-gray-900">₹{subtotal.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Shipping</span>
                   <span className="font-medium text-gray-900">
-                    {shipping === 0 ? 'FREE' : `₹${shipping.toFixed(2)}`}
+                    {deliveryFee === 0 ? 'FREE' : `₹${deliveryFee.toFixed(2)}`}
                   </span>
                 </div>
                 <div className="flex justify-between">

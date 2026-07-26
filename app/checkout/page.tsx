@@ -6,12 +6,12 @@ import SiteHeader from '@/components/layout/SiteHeader';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Button';
 import { useCartStore } from '@/store/cartStore';
-import { generateOrderId } from '@/lib/utils';
+import { generateOrderId, buildWhatsAppOrderMessage, getWhatsAppLink } from '@/lib/utils';
 import toast from 'react-hot-toast';
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { items, getTotalPrice, clearCart } = useCartStore();
+  const { items, getSubtotal, getDeliveryFee, clearCart } = useCartStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<'COD' | 'ONLINE'>('COD');
   const [formData, setFormData] = useState({
@@ -24,10 +24,10 @@ export default function CheckoutPage() {
     pincode: '',
   });
 
-  const total = getTotalPrice();
-  const shipping = total > 500 ? 0 : 40;
-  const tax = total * 0.05;
-  const grandTotal = total + shipping + tax;
+  const subtotal = getSubtotal();
+  const deliveryFee = getDeliveryFee();
+  const tax = subtotal * 0.05;
+  const grandTotal = subtotal + deliveryFee + tax;
 
   const loadRazorpayScript = useCallback(() => {
     return new Promise<boolean>((resolve) => {
@@ -56,10 +56,13 @@ export default function CheckoutPage() {
         items: items.map((item) => ({
           product: item.product._id,
           name: item.product.name,
+          selectedWeight: item.variant.weight,
           quantity: item.quantity,
-          price: item.product.price,
+          price: item.variant.price,
           image: item.product.images[0],
         })),
+        subtotal,
+        deliveryFee,
         totalAmount: grandTotal,
         paymentMethod,
         paymentStatus: 'PENDING',
@@ -133,6 +136,21 @@ export default function CheckoutPage() {
     }
   };
 
+  const handleWhatsAppOrder = () => {
+    const message = buildWhatsAppOrderMessage(
+      items.map((item) => ({
+        name: item.product.name,
+        selectedWeight: item.variant.weight,
+        quantity: item.quantity,
+        price: item.variant.price,
+      })),
+      grandTotal,
+      `${formData.address}, ${formData.city}, ${formData.state} - ${formData.pincode}`
+    );
+    const link = getWhatsAppLink('919876543210', message);
+    window.open(link, '_blank');
+  };
+
   useEffect(() => {
     if (items.length === 0) {
       router.push('/cart');
@@ -140,11 +158,11 @@ export default function CheckoutPage() {
   }, [items, router]);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-brand-ivory">
       <SiteHeader />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">Checkout</h1>
+        <h1 className="text-3xl font-bold text-brand-maroon mb-8">Checkout</h1>
 
         <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-6">
@@ -171,7 +189,7 @@ export default function CheckoutPage() {
                   onClick={() => setPaymentMethod('ONLINE')}
                   className={`flex-1 p-4 rounded-lg border-2 text-center transition-colors ${
                     paymentMethod === 'ONLINE'
-                      ? 'border-primary-500 bg-primary-50'
+                      ? 'border-brand-crimson bg-brand-crimson/5'
                       : 'border-gray-200 hover:border-gray-300'
                   }`}
                 >
@@ -183,7 +201,7 @@ export default function CheckoutPage() {
                   onClick={() => setPaymentMethod('COD')}
                   className={`flex-1 p-4 rounded-lg border-2 text-center transition-colors ${
                     paymentMethod === 'COD'
-                      ? 'border-primary-500 bg-primary-50'
+                      ? 'border-brand-crimson bg-brand-crimson/5'
                       : 'border-gray-200 hover:border-gray-300'
                   }`}
                 >
@@ -191,6 +209,13 @@ export default function CheckoutPage() {
                   <p className="text-sm text-gray-500">Pay when delivered</p>
                 </button>
               </div>
+              <button
+                type="button"
+                onClick={handleWhatsAppOrder}
+                className="mt-4 w-full bg-green-600 text-white py-3 rounded-lg font-medium hover:bg-green-700 transition-colors"
+              >
+                Order via WhatsApp
+              </button>
             </div>
           </div>
 
@@ -200,12 +225,12 @@ export default function CheckoutPage() {
               <div className="space-y-3 text-sm">
                 <div className="flex justify-between">
                   <span className="text-gray-600">Subtotal</span>
-                  <span className="font-medium text-gray-900">₹{total.toFixed(2)}</span>
+                  <span className="font-medium text-gray-900">₹{subtotal.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Shipping</span>
                   <span className="font-medium text-gray-900">
-                    {shipping === 0 ? 'FREE' : `₹${shipping.toFixed(2)}`}
+                    {deliveryFee === 0 ? 'FREE' : `₹${deliveryFee.toFixed(2)}`}
                   </span>
                 </div>
                 <div className="flex justify-between">

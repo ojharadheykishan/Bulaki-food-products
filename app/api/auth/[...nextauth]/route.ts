@@ -9,6 +9,7 @@ const authOptions: NextAuthOptions = {
     {
       id: 'credentials',
       name: 'Credentials',
+      type: 'credentials',
       credentials: {
         email: { label: 'Email', type: 'email' },
         password: { label: 'Password', type: 'password' },
@@ -42,6 +43,7 @@ const authOptions: NextAuthOptions = {
             email: user.email,
             name: user.name,
             role: user.role,
+            phone: user.phone,
           };
         } catch (error) {
           console.error('Auth error:', error);
@@ -53,7 +55,7 @@ const authOptions: NextAuthOptions = {
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.role = user.role;
+        token.role = (user as any).role || 'CUSTOMER';
         token.id = user.id;
       }
       return token;

@@ -20,7 +20,7 @@ export async function GET() {
       ]),
       Order.countDocuments(),
       Order.countDocuments({ orderStatus: { $in: ['PREPARING', 'OUT_FOR_DELIVERY'] } }),
-      Product.countDocuments({ stock: { $lt: 5 } }),
+      Product.countDocuments({ $expr: { $lt: [{ $sum: '$variants.stock' }, 10] } }),
       Order.find()
         .sort({ createdAt: -1 })
         .limit(5)

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
-import { Order } from '@/types';
+import { Order, OrderItem } from '@/types';
 import SiteHeader from '@/components/layout/SiteHeader';
 import TrackingProgress from '@/components/shared/TrackingProgress';
 import { Button } from '@/components/ui/Button';
@@ -23,7 +23,7 @@ export default function TrackOrderPage() {
           const data = await res.json();
           throw new Error(data.error || 'Order not found');
         }
-        const data = await res.json();
+        const data: Order = await res.json();
         setOrder(data);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to fetch order');
@@ -36,10 +36,10 @@ export default function TrackOrderPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-brand-ivory">
         <SiteHeader />
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto" />
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-crimson mx-auto" />
         </div>
       </div>
     );
@@ -47,11 +47,11 @@ export default function TrackOrderPage() {
 
   if (error || !order) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-brand-ivory">
         <SiteHeader />
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Order Not Found</h1>
-          <p className="text-gray-600 mb-6">{error}</p>
+          <h1 className="text-2xl font-bold text-brand-maroon mb-2">Order Not Found</h1>
+          <p className="text-brand-maroon/70 mb-6">{error}</p>
           <Link href="/">
             <Button>Go Back Home</Button>
           </Link>
@@ -63,20 +63,20 @@ export default function TrackOrderPage() {
   const latestStatus = order.statusHistory[order.statusHistory.length - 1];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-brand-ivory">
       <SiteHeader />
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <Link href="/" className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6">
+        <Link href="/" className="inline-flex items-center gap-2 text-brand-maroon/70 hover:text-brand-maroon mb-6">
           <ArrowLeft className="w-4 h-4" />
           Back to Home
         </Link>
 
-        <div className="card p-6 mb-6">
+        <div className="card p-6 mb-6 border-2 border-[#e6dfd3]">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Order #{order.orderId}</h1>
-              <p className="text-sm text-gray-500 mt-1">
+              <h1 className="text-2xl font-bold text-brand-maroon">Order #{order.orderId}</h1>
+              <p className="text-sm text-brand-maroon/70 mt-1">
                 Placed on {new Date(order.createdAt).toLocaleDateString('en-IN', {
                   day: 'numeric',
                   month: 'long',
@@ -102,7 +102,7 @@ export default function TrackOrderPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2">
-            <div className="card p-6 mb-6">
+            <div className="card p-6 mb-6 border-2 border-[#e6dfd3]">
               <TrackingProgress
                 orderStatus={order.orderStatus}
                 statusDate={latestStatus?.updatedAt}
@@ -111,26 +111,26 @@ export default function TrackOrderPage() {
             </div>
 
             {order.trackingNumber && (
-              <div className="card p-6 mb-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Courier Details</h3>
+              <div className="card p-6 mb-6 border-2 border-[#e6dfd3]">
+                <h3 className="text-lg font-semibold text-brand-maroon mb-4">Courier Details</h3>
                 <div className="space-y-3">
                   <div className="flex items-center gap-3">
-                    <Truck className="w-5 h-5 text-gray-400" />
+                    <Truck className="w-5 h-5 text-brand-maroon/50" />
                     <div>
-                      <p className="font-medium text-gray-900">Courier Partner</p>
-                      <p className="text-sm text-gray-600">{order.courierPartner || 'Not assigned'}</p>
+                      <p className="font-medium text-brand-maroon">Courier Partner</p>
+                      <p className="text-sm text-brand-maroon/70">{order.courierPartner || 'Not assigned'}</p>
                     </div>
                   </div>
                   {order.trackingNumber && (
                     <div className="flex items-center gap-3">
-                      <div className="w-5 h-5 flex items-center justify-center text-gray-400">
+                      <div className="w-5 h-5 flex items-center justify-center text-brand-maroon/50">
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
                         </svg>
                       </div>
                       <div>
-                        <p className="font-medium text-gray-900">Tracking Number</p>
-                        <p className="text-sm text-gray-600 font-mono">{order.trackingNumber}</p>
+                        <p className="font-medium text-brand-maroon">Tracking Number</p>
+                        <p className="text-sm text-brand-maroon/70 font-mono">{order.trackingNumber}</p>
                       </div>
                     </div>
                   )}
@@ -138,10 +138,10 @@ export default function TrackOrderPage() {
               </div>
             )}
 
-            <div className="card p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Order Items</h3>
+            <div className="card p-6 border-2 border-[#e6dfd3]">
+              <h3 className="text-lg font-semibold text-brand-maroon mb-4">Order Items</h3>
               <div className="space-y-4">
-                {order.orderItems.map((item, index) => (
+                {order.orderItems.map((item: OrderItem, index: number) => (
                   <div key={index} className="flex items-center gap-4">
                     <div className="w-16 h-16 rounded-lg overflow-hidden bg-gray-100 shrink-0">
                       <img
@@ -151,10 +151,10 @@ export default function TrackOrderPage() {
                       />
                     </div>
                     <div className="flex-1">
-                      <p className="font-medium text-gray-900">{item.name}</p>
-                      <p className="text-sm text-gray-500">Qty: {item.quantity}</p>
+                      <p className="font-medium text-brand-maroon">{item.name}</p>
+                      <p className="text-sm text-brand-maroon/70">Qty: {item.quantity}{item.selectedWeight ? ` · ${item.selectedWeight}` : ''}</p>
                     </div>
-                    <p className="font-medium text-gray-900">₹{(item.price * item.quantity).toFixed(2)}</p>
+                    <p className="font-medium text-brand-maroon">₹{(item.price * item.quantity).toFixed(2)}</p>
                   </div>
                 ))}
               </div>
@@ -162,44 +162,50 @@ export default function TrackOrderPage() {
           </div>
 
           <div className="lg:col-span-1 space-y-6">
-            <div className="card p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Delivery Address</h3>
+            <div className="card p-6 border-2 border-[#e6dfd3]">
+              <h3 className="text-lg font-semibold text-brand-maroon mb-4">Delivery Address</h3>
               <div className="space-y-3">
                 <div className="flex items-start gap-3">
-                  <MapPin className="w-5 h-5 text-gray-400 mt-0.5" />
+                  <MapPin className="w-5 h-5 text-brand-maroon/50 mt-0.5" />
                   <div>
-                    <p className="font-medium text-gray-900">{order.customer.name}</p>
-                    <p className="text-sm text-gray-600">{order.customer.address}</p>
-                    {order.customer.city && <p className="text-sm text-gray-600">{order.customer.city}</p>}
-                    {order.customer.state && <p className="text-sm text-gray-600">{order.customer.state}</p>}
-                    <p className="text-sm text-gray-600">Pincode: {order.customer.pincode}</p>
+                    <p className="font-medium text-brand-maroon">{order.customer.name}</p>
+                    <p className="text-sm text-brand-maroon/70">{order.customer.address}</p>
+                    {order.customer.city && <p className="text-sm text-brand-maroon/70">{order.customer.city}</p>}
+                    {order.customer.state && <p className="text-sm text-brand-maroon/70">{order.customer.state}</p>}
+                    <p className="text-sm text-brand-maroon/70">Pincode: {order.customer.pincode}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <Phone className="w-5 h-5 text-gray-400" />
-                  <p className="text-sm text-gray-700">{order.customer.phone}</p>
+                  <Phone className="w-5 h-5 text-brand-maroon/50" />
+                  <p className="text-sm text-brand-maroon/80">{order.customer.phone}</p>
                 </div>
                 <div className="flex items-center gap-3">
-                  <Mail className="w-5 h-5 text-gray-400" />
-                  <p className="text-sm text-gray-700">{order.customer.email}</p>
+                  <Mail className="w-5 h-5 text-brand-maroon/50" />
+                  <p className="text-sm text-brand-maroon/80">{order.customer.email}</p>
                 </div>
               </div>
             </div>
 
-            <div className="card p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Order Summary</h3>
+            <div className="card p-6 border-2 border-[#e6dfd3]">
+              <h3 className="text-lg font-semibold text-brand-maroon mb-4">Order Summary</h3>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Subtotal</span>
-                  <span className="font-medium text-gray-900">₹{order.totalAmount.toFixed(2)}</span>
+                  <span className="text-brand-maroon/70">Subtotal</span>
+                  <span className="font-medium text-brand-maroon">₹{order.subtotal.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Payment</span>
-                  <span className="font-medium text-gray-900">{order.paymentMethod}</span>
+                  <span className="text-brand-maroon/70">Shipping</span>
+                  <span className="font-medium text-brand-maroon">
+                    {order.deliveryFee === 0 ? 'FREE' : `₹${order.deliveryFee.toFixed(2)}`}
+                  </span>
                 </div>
-                <div className="border-t border-gray-200 pt-2 flex justify-between text-base">
-                  <span className="font-semibold text-gray-900">Total</span>
-                  <span className="font-bold text-gray-900">₹{order.totalAmount.toFixed(2)}</span>
+                <div className="flex justify-between">
+                  <span className="text-brand-maroon/70">Payment</span>
+                  <span className="font-medium text-brand-maroon">{order.paymentMethod}</span>
+                </div>
+                <div className="border-t border-[#e6dfd3] pt-2 flex justify-between text-base">
+                  <span className="font-semibold text-brand-maroon">Total</span>
+                  <span className="font-bold text-brand-maroon">₹{order.totalAmount.toFixed(2)}</span>
                 </div>
               </div>
             </div>

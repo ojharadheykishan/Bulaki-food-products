@@ -12,17 +12,19 @@
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true,
+    "baseUrl": ".",
     "plugins": [
       {
         "name": "next"
       }
     ],
     "paths": {
-      "@/*": ["./"],
+      "@/*": ["./*"],
       "@/components/*": ["./components/*"],
       "@/lib/*": ["./lib/*"],
       "@/models/*": ["./models/*"],
       "@/store/*": ["./store/*"],
+      "@/types": ["./types/index.ts"],
       "@/types/*": ["./types/*"]
     }
   },

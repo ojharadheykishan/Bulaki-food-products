@@ -6,8 +6,8 @@ export async function middleware(request: NextRequest) {
   const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
 
   if (request.nextUrl.pathname.startsWith('/admin')) {
-    if (!token || token.role !== 'admin') {
-      const loginUrl = new URL('/login', request.url);
+    if (!token || token.role !== 'ADMIN') {
+      const loginUrl = new URL('/admin/login', request.url);
       loginUrl.searchParams.set('callbackUrl', request.url);
       return NextResponse.redirect(loginUrl);
     }
