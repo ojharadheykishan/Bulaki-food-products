@@ -32,7 +32,7 @@ const authOptions: NextAuthOptions = {
             return null;
           }
 
-          const isPasswordValid = credentials.password === user.password;
+          const isPasswordValid = credentials.password === user.password || (await import('bcryptjs')).compare(credentials.password, user.password);
 
           if (!isPasswordValid) {
             return null;
@@ -42,7 +42,7 @@ const authOptions: NextAuthOptions = {
             id: user._id.toString(),
             email: user.email,
             name: user.name,
-            role: user.role,
+            role: (user as any).role || 'CUSTOMER',
             phone: user.phone,
           };
         } catch (error) {
