@@ -26,7 +26,7 @@ const authOptions: NextAuthOptions = {
 
           const user = await User.findOne({
             email: credentials.email.toLowerCase(),
-          });
+          }).select('+password');
 
           if (!user || !user.password) {
             return null;
